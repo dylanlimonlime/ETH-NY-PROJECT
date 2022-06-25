@@ -1,0 +1,3 @@
+[submodule "nft_lazy_minting"]
+	path = nft_lazy_minting
+	url = git@github.com:BestItPartner/nft_lazy_minting.git
