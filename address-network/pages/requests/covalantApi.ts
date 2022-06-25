@@ -71,23 +71,40 @@ import Axios from "axios";
 }
 */
 
-export interface TransactionReciept{
-    to_address: string;
-}   
-export interface TransactionResponseInterface {
-    address: string;
-    items: Array<TransactionReciept>;
+export interface TransactionReciept {
+  to_address: string;
 }
-const COVALENT_API_KEY = "ckey_831994ea5e524962bc9a27acfad"; 
+export interface TransactionResponseInterface {
+  address: string;
+  items: Array<TransactionReciept>;
+}
+const COVALENT_API_KEY = "ckey_831994ea5e524962bc9a27acfad";
 //>>> curl -X GET https://api.covalenthq.com/v1/ENDPOINT/?key=API_KEY
 const CHAIN_ID = 1;
 const COVALENT_REQUEST_URI = "https://api.covalenthq.com/v1";
 const COVALENT_BASE_URI = `${COVALENT_REQUEST_URI}/${CHAIN_ID}`;
 
 export const fetchTransactionData = async (address: string) => {
-    const requestUri = `${COVALENT_BASE_URI}/address/${address}/transactions_v2/?key=${COVALENT_API_KEY}`;
-    const response = await Axios.get(requestUri);
-    console.log(response.data.data);
-    const parsedResponse = JSON.parse(response.data.data) as TransactionResponseInterface;
-    console.log(parsedResponse);
-}
+  const requestUri = `${COVALENT_BASE_URI}/address/${address}/transactions_v2/?key=${COVALENT_API_KEY}`;
+  const response = await Axios.get(requestUri);
+  console.log(response.data.data);
+  const parsedResponse = JSON.parse(
+    response.data.data
+  ) as TransactionResponseInterface;
+  console.log(parsedResponse.items);
+  const transactionMap = new Map();
+};
+
+export const parseIntoMap = (jsonResponse: TransactionResponseInterface) => {
+  const transactionMap = new Map<string, number>();
+  jsonResponse.items.forEach((o) => {
+    const address = o.to_address;
+
+    if (transactionMap.has(address)) {
+      transactionMap.set(address, (transactionMap.get(address) as number) + 1);
+    } else {
+      transactionMap.set(address, 1);
+    }
+  });
+  return transactionMap;
+};
