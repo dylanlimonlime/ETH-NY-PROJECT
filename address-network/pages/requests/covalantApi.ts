@@ -73,6 +73,7 @@ import Axios from "axios";
 
 export interface TransactionReciept {
   to_address: string;
+  from_address: string;
   log_events: [];
 }
 export interface TransactionResponseInterface {
@@ -104,7 +105,7 @@ export interface AddressMetadata {
 /* functionality: creates map of all transactions addressees and number of times transacted with */
 export const parseIntoMap = (
   jsonResponse: TransactionResponseInterface,
-  fromAddress: string
+  userAddress: string
 ) => {
   console.log("parseintoMap called");
 
@@ -112,8 +113,8 @@ export const parseIntoMap = (
   //transaction map
   jsonResponse.items.forEach((o) => {
     //iterate through each transaction
-    if (o.to_address != fromAddress) {
-      //Do not include initial user
+    if (o.to_address != userAddress) {
+      //initial user is sender
       const address = o.to_address; //get to_address of trxn
       const logEvents = o.log_events; //gets array of log events
       /* get transaction count */
@@ -136,6 +137,24 @@ export const parseIntoMap = (
           numberOfTransactions: (transactionMap.get(address) as AddressMetadata)
             .numberOfTransactions,
           isContract: true,
+        });
+      }
+    } else if (o.to_address == userAddress) {
+      //initial user is recipient
+      const address = o.from_address; //get to_address of trxn
+      const logEvents = o.log_events; //gets array of log events
+      /* get transaction count */
+      if (transactionMap.has(address)) {
+        transactionMap.set(address, {
+          numberOfTransactions:
+            (transactionMap.get(address) as AddressMetadata)
+              .numberOfTransactions + 1,
+          isContract: false,
+        });
+      } else {
+        transactionMap.set(address, {
+          numberOfTransactions: 1,
+          isContract: false,
         });
       }
     }
