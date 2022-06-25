@@ -25,30 +25,36 @@ const Home: NextPage = () => {
   const connectOnClick = () => {
     //  Create WalletConnect SDK instance
     const wc = new WalletConnect();
-    //  Connect session (triggers QR Code modal)
-    fetchTransactionData(testAddress)
-      .then((data) => {
-        parseIntoMap(data, testAddress);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
 
-    // wc.connect()
+    /*Covalent test function*/
+    // fetchTransactionData(testAddress)
     //   .then((data) => {
-    //     setConnection(true);
-    //     setUserAddress(userAddress);
-    //     fetchTransactionData(userAddress)
-    //       .then((data) => {
-    //         parseIntoMap(data);
-    //       })
-    //       .catch((err) => {
-    //         console.log(err);
-    //       });
+    //     parseIntoMap(data, testAddress);
     //   })
     //   .catch((err) => {
     //     console.log(err);
     //   });
+
+    /*Connect session (triggers QR Code modal)*/
+    console.log("I am connecting");
+    wc.connect()
+      .then((data) => {
+        console.log("I have connected");
+        const userAddress = data.accounts[0];
+        setConnection(true);
+        setUserAddress(userAddress);
+        console.log("userAddress:", userAddress);
+        fetchTransactionData(userAddress)
+          .then((data) => {
+            parseIntoMap(data, userAddress);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
   const disconnectOnClick = () => {
     const wc = new WalletConnect();
