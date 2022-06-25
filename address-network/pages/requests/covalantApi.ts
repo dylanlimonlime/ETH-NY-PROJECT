@@ -87,24 +87,33 @@ const COVALENT_BASE_URI = `${COVALENT_REQUEST_URI}/${CHAIN_ID}`;
 export const fetchTransactionData = async (address: string) => {
   const requestUri = `${COVALENT_BASE_URI}/address/${address}/transactions_v2/?key=${COVALENT_API_KEY}`;
   const response = await Axios.get(requestUri);
-  console.log(response.data.data);
-  const parsedResponse = JSON.parse(
-    response.data.data
-  ) as TransactionResponseInterface;
-  console.log(parsedResponse.items);
-  const transactionMap = new Map();
+
+  console.log(response);
+  return response.data.data as TransactionResponseInterface;
+  //console.log(parsedResponse.items);
 };
 
-export const parseIntoMap = (jsonResponse: TransactionResponseInterface) => {
+export const parseIntoMap = (
+  jsonResponse: TransactionResponseInterface,
+  fromAddress: string
+) => {
+  console.log("parseintoMap called");
   const transactionMap = new Map<string, number>();
   jsonResponse.items.forEach((o) => {
-    const address = o.to_address;
+    if (o.to_address != fromAddress) {
+      const address = o.to_address;
 
-    if (transactionMap.has(address)) {
-      transactionMap.set(address, (transactionMap.get(address) as number) + 1);
-    } else {
-      transactionMap.set(address, 1);
+      if (transactionMap.has(address)) {
+        transactionMap.set(
+          address,
+          (transactionMap.get(address) as number) + 1
+        );
+      } else {
+        transactionMap.set(address, 1);
+      }
     }
   });
+  console.log(transactionMap);
+
   return transactionMap;
 };
