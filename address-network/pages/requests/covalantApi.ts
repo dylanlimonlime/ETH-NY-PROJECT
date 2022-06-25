@@ -73,11 +73,14 @@ import Axios from "axios";
 
 export interface TransactionReciept {
   to_address: string;
+  from_address: string;
+  log_events: [];
 }
 export interface TransactionResponseInterface {
   address: string;
   items: Array<TransactionReciept>;
 }
+
 const COVALENT_API_KEY = "ckey_831994ea5e524962bc9a27acfad";
 //>>> curl -X GET https://api.covalenthq.com/v1/ENDPOINT/?key=API_KEY
 const CHAIN_ID = 1;
@@ -93,28 +96,66 @@ export const fetchTransactionData = async (address: string) => {
   return response.data.data as TransactionResponseInterface;
   //console.log(parsedResponse.items);
 };
+export interface AddressMetadata {
+  numberOfTransactions: number;
+  isContract: boolean;
+}
 
 /* Transcation map */
 /* functionality: creates map of all transactions addressees and number of times transacted with */
 export const parseIntoMap = (
   jsonResponse: TransactionResponseInterface,
-  fromAddress: string
+  userAddress: string
 ) => {
   console.log("parseintoMap called");
-  const transactionMap = new Map<string, number>();
+
+  const transactionMap = new Map<string, AddressMetadata>();
+  //transaction map
   jsonResponse.items.forEach((o) => {
     //iterate through each transaction
-    if (o.to_address != fromAddress) {
-      //Do not include initial user
+    if (o.to_address != userAddress) {
+      //initial user is sender
       const address = o.to_address; //get to_address of trxn
+      const logEvents = o.log_events; //gets array of log events
       /* get transaction count */
       if (transactionMap.has(address)) {
-        transactionMap.set(
-          address,
-          (transactionMap.get(address) as number) + 1
-        );
+        transactionMap.set(address, {
+          numberOfTransactions:
+            (transactionMap.get(address) as AddressMetadata)
+              .numberOfTransactions + 1,
+          isContract: false,
+        });
       } else {
-        transactionMap.set(address, 1);
+        transactionMap.set(address, {
+          numberOfTransactions: 1,
+          isContract: false,
+        });
+      }
+      //set isContract to be true if there is any info in log_events
+      if (logEvents.length > 0) {
+        transactionMap.set(address, {
+          numberOfTransactions: (transactionMap.get(address) as AddressMetadata)
+            .numberOfTransactions,
+          isContract: true,
+        });
+      }
+    } else if (o.to_address == userAddress) {
+      //initial user is recipient
+      const address = o.from_address; //get to_address of trxn
+      const logEvents = o.log_events; //gets array of log events
+      /* get transaction count */
+      if (transactionMap.has(address)) {
+        transactionMap.set(address, {
+          numberOfTransactions:
+            (transactionMap.get(address) as AddressMetadata)
+              .numberOfTransactions + 1,
+          isContract: false,
+        });
+      } else {
+        transactionMap.set(address, {
+          numberOfTransactions: 1,
+          isContract: false,
+        });
       }
     }
   });
