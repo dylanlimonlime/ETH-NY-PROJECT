@@ -1,76 +1,65 @@
-import type { NextPage } from "next";
-import React, { useEffect, useState } from "react";
-import Head from "next/head";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
-import WalletConnect from "walletconnect";
-import { Grid, Button, Container } from "@mui/material";
+import type { NextPage } from 'next'
+import React, {useEffect, useState}  from 'react';
+import Head from 'next/head'
+import Image from 'next/image'
+import styles from '../styles/Home.module.css'
+import WalletConnect from 'walletconnect';
+import {Grid, Button,Container} from "@mui/material";
 import Web3 from "web3";
-import { IProviderOptions } from "web3modal";
+import {IProviderOptions} from "web3modal";
 import Web3Modal from "web3modal";
-import { useWallet, UseWalletProvider } from "use-wallet";
-import { connect } from "http2";
-import { fetchTransactionData, parseIntoMap } from "./requests/covalantApi";
+import { useWallet, UseWalletProvider } from 'use-wallet'
+import { connect } from 'http2';
+import { fetchTransactionData } from '../../address-dashboard/src/api/covalantApi';
+import CytoscapeComponent from 'react-cytoscapejs';
 
-/*test address*/
-//const testAddress = "0xd8791b6abdb7c5d564018ebb93ad8a092b1d8abd";
+//import Flow, { FlowProps, initialNodeProps } from './components/flow';
+//import { constructParentNode, wrapNodeProps } from './components/helper';
 
-function truncate(str: String) {
-  return str.substring(0, 6) + "..." + str.substring(36, 42);
-}
+const testAddress = "0xd8791b6abdb7c5d564018ebb93ad8a092b1d8abd";
+
+function truncate(str: String){
+  return str.substring(0, 6) + "..." + str.substring(36,42);
+};
 
 const Home: NextPage = () => {
-  const [isConnected, setConnection] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConnected, setConnection] = useState(false); 
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const [userAddress, setUserAddress] = useState("");
   const connectOnClick = () => {
     //  Create WalletConnect SDK instance
     const wc = new WalletConnect();
+    fetchTransactionData(testAddress).then(data => {
+      
+    }).catch(err => {
 
-    /*Covalent test function*/
-    // fetchTransactionData(testAddress)
-    //   .then((data) => {
-    //     parseIntoMap(data, testAddress);
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //   });
-
-    /*Connect session (triggers QR Code modal)*/
-    console.log("I am connecting");
-    wc.connect()
-      .then((data) => {
-        console.log("I have connected");
-        const userAddress = data.accounts[0]; //get user address
-        setConnection(true);
-        setUserAddress(userAddress);
-        console.log("userAddress:", userAddress);
-        fetchTransactionData(userAddress) //fetch transaction data of user
-          .then((data) => {
-            parseIntoMap(data, userAddress); //create user transaction map
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-  /* disconnect wallect */
+    })
+    //  Connect session (triggers QR Code modal)
+    wc.connect().then(data => {
+      
+      console.log(data);
+      const userAddress = data.accounts[0];
+      setConnection(true);
+      setUserAddress(userAddress);
+      fetchTransactionData(userAddress);
+      
+    }).catch(err =>{
+      console.log(err);
+    })
+  }
   const disconnectOnClick = () => {
     const wc = new WalletConnect();
     //  Create WalletConnect SDK instance
-    wc.connect()
-      .then((data) => {
-        data.killSession();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    wc.connect().then(data => {
+      data.killSession();
+      
+    }).catch(err =>{
+      console.log(err);
+    })
     setConnection(false);
     setUserAddress("");
-  };
+    
+  }
   return (
     <div className={styles.container}>
       <Head>
@@ -79,50 +68,54 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container>
-        <Grid container spacing={2}>
-          <Grid item xs={3}>
-            {" "}
-          </Grid>
-          <Grid item xs={6}>
-            <Container style={{}}></Container>
-          </Grid>
+      <Grid container spacing={2}>
+      <Grid item xs={3}> </Grid>
+      <Grid item xs={8} >
+        <Container style={{}}>
+      
+        </Container>
+       </Grid>
 
-          <Grid item xs={3}>
-            {" "}
-          </Grid>
+      <Grid item xs={3} > </Grid>
 
-          <Grid item xs={11}></Grid>
-          <Grid item xs={1}>
-            {!isConnected && (
-              <Button variant="contained" onClick={connectOnClick}>
-                {" "}
-                Connect{" "}
-              </Button>
-            )}
-            {isConnected && (
-              <Button variant="contained" onClick={disconnectOnClick}>
-                {" "}
-                Disconnect {truncate(userAddress)}{" "}
-              </Button>
-            )}
-          </Grid>
-        </Grid>
-      </Container>
 
+      <Grid item xs={11}>
+      </Grid>
+      <Grid item xs={1}>
+        {!isConnected && <Button variant = "contained" onClick ={connectOnClick }> Connect </Button>}
+        {isConnected && <Button variant = "contained" onClick ={disconnectOnClick }> Disconnect {truncate(userAddress)} </Button>}
+      </Grid>
+
+
+      
+        
+      {!isConnected && <Container> please connect wallet to generate affiliation network </Container> }
+
+    </Grid>
+    
+      </Container >
+      <div>
+      {isConnected && 
+      <Container style={{alignContent: 'center', alignItems: 'center', height:'800px', width: '100%'}}>  
+
+        </Container>
+      }
+      
+      </div>
       <footer className={styles.footer}>
         <a
           href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{" "}
+          Powered by{' '}
           <span className={styles.logo}>
             <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
           </span>
         </a>
       </footer>
     </div>
-  );
-};
+  )
+}
 
-export default Home;
+export default Home
