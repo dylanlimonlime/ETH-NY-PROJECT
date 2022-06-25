@@ -12,7 +12,8 @@ import { useWallet, UseWalletProvider } from "use-wallet";
 import { connect } from "http2";
 import { fetchTransactionData, parseIntoMap } from "./requests/covalantApi";
 
-const testAddress = "0xd8791b6abdb7c5d564018ebb93ad8a092b1d8abd";
+/*test address*/
+//const testAddress = "0xd8791b6abdb7c5d564018ebb93ad8a092b1d8abd";
 
 function truncate(str: String) {
   return str.substring(0, 6) + "..." + str.substring(36, 42);
@@ -40,13 +41,13 @@ const Home: NextPage = () => {
     wc.connect()
       .then((data) => {
         console.log("I have connected");
-        const userAddress = data.accounts[0];
+        const userAddress = data.accounts[0]; //get user address
         setConnection(true);
         setUserAddress(userAddress);
         console.log("userAddress:", userAddress);
-        fetchTransactionData(userAddress)
+        fetchTransactionData(userAddress) //fetch transaction data of user
           .then((data) => {
-            parseIntoMap(data, userAddress);
+            parseIntoMap(data, userAddress); //create user transaction map
           })
           .catch((err) => {
             console.log(err);
@@ -56,6 +57,7 @@ const Home: NextPage = () => {
         console.log(err);
       });
   };
+  /* disconnect wallect */
   const disconnectOnClick = () => {
     const wc = new WalletConnect();
     //  Create WalletConnect SDK instance
