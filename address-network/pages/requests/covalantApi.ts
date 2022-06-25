@@ -84,6 +84,7 @@ const CHAIN_ID = 1;
 const COVALENT_REQUEST_URI = "https://api.covalenthq.com/v1";
 const COVALENT_BASE_URI = `${COVALENT_REQUEST_URI}/${CHAIN_ID}`;
 
+/*Get transaction data from API*/
 export const fetchTransactionData = async (address: string) => {
   const requestUri = `${COVALENT_BASE_URI}/address/${address}/transactions_v2/?key=${COVALENT_API_KEY}`;
   const response = await Axios.get(requestUri);
@@ -93,6 +94,8 @@ export const fetchTransactionData = async (address: string) => {
   //console.log(parsedResponse.items);
 };
 
+/* Transcation map */
+/* functionality: creates map of all transactions addressees and number of times transacted with */
 export const parseIntoMap = (
   jsonResponse: TransactionResponseInterface,
   fromAddress: string
@@ -100,9 +103,11 @@ export const parseIntoMap = (
   console.log("parseintoMap called");
   const transactionMap = new Map<string, number>();
   jsonResponse.items.forEach((o) => {
+    //iterate through each transaction
     if (o.to_address != fromAddress) {
-      const address = o.to_address;
-
+      //Do not include initial user
+      const address = o.to_address; //get to_address of trxn
+      /* get transaction count */
       if (transactionMap.has(address)) {
         transactionMap.set(
           address,
@@ -113,7 +118,7 @@ export const parseIntoMap = (
       }
     }
   });
-  console.log(transactionMap);
+  console.log(transactionMap); //output to console
 
   return transactionMap;
 };

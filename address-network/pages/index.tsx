@@ -12,7 +12,8 @@ import { useWallet, UseWalletProvider } from "use-wallet";
 import { connect } from "http2";
 import { fetchTransactionData, parseIntoMap } from "./requests/covalantApi";
 
-const testAddress = "0xd8791b6abdb7c5d564018ebb93ad8a092b1d8abd";
+/*test address*/
+//const testAddress = "0xd8791b6abdb7c5d564018ebb93ad8a092b1d8abd";
 
 function truncate(str: String) {
   return str.substring(0, 6) + "..." + str.substring(36, 42);
@@ -25,31 +26,38 @@ const Home: NextPage = () => {
   const connectOnClick = () => {
     //  Create WalletConnect SDK instance
     const wc = new WalletConnect();
-    //  Connect session (triggers QR Code modal)
-    fetchTransactionData(testAddress)
-      .then((data) => {
-        parseIntoMap(data, testAddress);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
 
-    // wc.connect()
+    /*Covalent test function*/
+    // fetchTransactionData(testAddress)
     //   .then((data) => {
-    //     setConnection(true);
-    //     setUserAddress(userAddress);
-    //     fetchTransactionData(userAddress)
-    //       .then((data) => {
-    //         parseIntoMap(data);
-    //       })
-    //       .catch((err) => {
-    //         console.log(err);
-    //       });
+    //     parseIntoMap(data, testAddress);
     //   })
     //   .catch((err) => {
     //     console.log(err);
     //   });
+
+    /*Connect session (triggers QR Code modal)*/
+    console.log("I am connecting");
+    wc.connect()
+      .then((data) => {
+        console.log("I have connected");
+        const userAddress = data.accounts[0]; //get user address
+        setConnection(true);
+        setUserAddress(userAddress);
+        console.log("userAddress:", userAddress);
+        fetchTransactionData(userAddress) //fetch transaction data of user
+          .then((data) => {
+            parseIntoMap(data, userAddress); //create user transaction map
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
+  /* disconnect wallect */
   const disconnectOnClick = () => {
     const wc = new WalletConnect();
     //  Create WalletConnect SDK instance
