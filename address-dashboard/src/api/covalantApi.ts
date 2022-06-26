@@ -1,4 +1,18 @@
 import Axios from "axios";
+export interface BalanceResponseItemInteface{
+  balance: number;
+  contract_address: string;
+  contract_decimals: number;
+  contract_name: string;
+  contract_ticker_symbol: string;
+  quote: number;
+  logo_url: string;
+
+}
+export interface BalanceResponseInterface{
+  address: string;
+  items: BalanceResponseItemInteface[];
+}
 
 export interface TransactionReciept {
   to_address: string;
@@ -18,6 +32,15 @@ const COVALENT_API_KEY = "ckey_831994ea5e524962bc9a27acfad";
 const CHAIN_ID = 1;
 const COVALENT_REQUEST_URI = "https://api.covalenthq.com/v1";
 const COVALENT_BASE_URI = `${COVALENT_REQUEST_URI}/${CHAIN_ID}`;
+export const fetchBalanceData = async (address: string) => {
+    const requestUri = `${COVALENT_BASE_URI}/address/${address}/balances_v2/?key=${COVALENT_API_KEY}`
+    const response = await Axios.get(requestUri);
+    const parsedResponse = response.data.data;
+    console.log(parsedResponse);
+    return parsedResponse;
+}
+
+
 
 export const fetchTransactionData = async (address: string) => {
     const requestUri = `${COVALENT_BASE_URI}/address/${address}/transactions_v2/?key=${COVALENT_API_KEY}`;

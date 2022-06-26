@@ -22,7 +22,7 @@ import CytoscapeComponent from "react-cytoscapejs";
 function radians(degrees: number) {
   return (degrees * Math.PI) / 180;
 }
-const radius = .9;
+const radius = 0.9;
 const testAddress = "0x62893F262390A4a531D5335b062fb42Bfb63304A";
 const layout = { name: "random" };
 const wc = new WalletConnect();
@@ -46,83 +46,79 @@ const Home = (props: any) => {
         const userAddress = data.accounts[0];
 
         setUserAddress(userAddress);
-      fetchTransactionData(userAddress).then((data) => {
-        let transactionMap = parseIntoMap(data, userAddress);
+        fetchTransactionData(userAddress).then((data) => {
+          let transactionMap = parseIntoMap(data, userAddress);
 
-        let len = transactionMap.size;
-        let i = 0;
-        let interval = 365 / len;
-        let newElements: Array<any> = [
-          {
-            data: {
-              id: userAddress,
-              label: truncate(userAddress),
-              grabbable: true,
-              classes: 'eh-handle',
-              name: "YOU",
-              score: 1,
+          let len = transactionMap.size;
+          let i = 0;
+          let interval = 365 / len;
+          let newElements: Array<any> = [
+            {
+              data: {
+                id: userAddress,
+                label: truncate(userAddress),
+                grabbable: true,
+                classes: "eh-handle",
+                name: "YOU",
+                score: 1,
+              },
+              position: {
+                x: 0,
+                y: 0,
+              },
+              style: {
+                backgroundColor: "#00000",
+              },
+            },
+          ];
 
-                
-            },
-            position: {
-              x: 0,
-              y: 0,
-            },
-            style: {
-              backgroundColor: "#00000",
-            },
-          },
-          
+          transactionMap.forEach((val, key) => {
+            let pointAngleInRadians = radians(i);
+            console.log(pointAngleInRadians);
+            var x = Math.cos(pointAngleInRadians) * radius;
+            var y = Math.sin(pointAngleInRadians) * radius;
+            if (i % 2 == 0) {
+              x *= 1.5;
+              y *= 1.5;
+            }
 
-        ];
-        
-        transactionMap.forEach((val, key) => {
-          let pointAngleInRadians = radians(i);
-          console.log(pointAngleInRadians);
-          var x = Math.cos(pointAngleInRadians) * radius;
-          var y = Math.sin(pointAngleInRadians) * radius;
-          if (i % 2 == 0) {
-            x *= 1.5;
-            y *= 1.5;
-          }
+            let newNode = {
+              data: {
+                classes: "eh-handle",
+                id: key,
+                label: "",
+                grabbable: true,
+                name: truncate(key),
+                isContract: val.isContract,
+                score: val.isContract
+                  ? val.numberOfTransactions / 100
+                  : val.numberOfTransactions / 1000,
+              },
+              position: {
+                x,
+                y,
+              },
+              style: {
+                backgroundColor: val.isContract ? "#0000FF" : "#B8CEFF",
+              },
+            };
 
-          let newNode = {
-            data: {
-              classes: 'eh-handle',
-              id: key,
-              label: '',
-              grabbable: true,
-              name: truncate(key),
-              isContract: val.isContract,
-              score: val.isContract ? val.numberOfTransactions/100: val.numberOfTransactions/1000,
-            },
-            position: {
-              x,
-              y,
-            },
-            style: {
-              backgroundColor: val.isContract ? "#0000FF": "#B8CEFF",
-            },
-          };
+            let newEdge = {
+              data: {
+                source: userAddress,
+                target: key,
+                weight: val.numberOfTransactions / 1000,
+                networkGroupId: 18,
+              },
+              position: {},
+            };
 
+            i += interval;
+            newElements.push(newNode, newEdge);
+            setGraphElements(CytoscapeComponent.normalizeElements(newElements));
+          });
 
-          let newEdge = {
-            data: {
-              source: userAddress,
-              target: key,
-              weight: val.numberOfTransactions/1000,
-              networkGroupId: 18,
-            },
-            position: {},
-          };
-
-          i += interval;
-          newElements.push(newNode, newEdge);
-          setGraphElements(CytoscapeComponent.normalizeElements(newElements));
-        });
-      
-        setConnection(true);
-      
+          setConnection(true);
         });
       })
       .catch((err) => {});
@@ -131,7 +127,7 @@ const Home = (props: any) => {
     //  Create WalletConnect SDK instance
     wc.connect()
       .then((data) => {
-      setConnection(false);
+        setConnection(false);
 
         data.killSession();
       })
@@ -149,35 +145,42 @@ const Home = (props: any) => {
         <meta name="description" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
       </Head> */}
-      <ResponsiveAppBar></ResponsiveAppBar>
-      {!isConnected && (
-          <Button variant="contained" onClick={connectOnClick}>
-            {" "}
-            Connect{" "}
-          </Button>
-        )}
-        {isConnected && (
-          <Button variant="contained" onClick={disconnectOnClick}>
-            {" "}
-            Disconnect {truncate(userAddress)}{" "}
-          </Button>
-        )}
-        {!isConnected && (
+      <Grid>
+        <Grid item xs={4}>
+        </Grid>
+        <Grid item xs={4}>
           <Container>
-            {" "}
-            please connect wallet to generate affiliation network{" "}
-          </Container>
-        )}
-        {isConnected && graphElements.length  == 0 &&(
-          <Container>
-          {" "}
-          generating affiliation network{" "}
-        </Container>
-        )}
+            {!isConnected && (
+              <Button variant="contained" onClick={connectOnClick}>
+                {" "}
+                Connect{" "}
+              </Button>
+            )}
+            {isConnected && (
+              <Button variant="contained" onClick={disconnectOnClick}>
+                {" "}
+                Disconnect {truncate(userAddress)}{" "}
+              </Button>
+            )}
 
-      {isConnected && graphElements.length > 1 && (
-        <Graph elements={graphElements} userAddress={userAddress}></Graph>
-      )}
+            {!isConnected && (
+              <Container>
+                {" "}
+                please connect wallet to generate affiliation network{" "}
+              </Container>
+            )}
+            {isConnected && graphElements.length == 0 && (
+              <Container> generating affiliation network </Container>
+            )}
+          </Container>
+        </Grid>
+        <Grid item xs={4}>
+        </Grid>
+
+        {isConnected && graphElements.length > 1 && (
+          <Graph elements={graphElements} userAddress={userAddress}></Graph>
+        )}
+      </Grid>
     </div>
   );
 };
