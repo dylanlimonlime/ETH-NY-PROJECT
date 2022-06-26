@@ -5,15 +5,15 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import "./Polyfill";
 import Graph from './components/Graph';
+import Home from './components/Home';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
-  <React.StrictMode>
-    <Graph>
-      </Graph>
-  </React.StrictMode>
+    <Home>
+
+    </Home>
 );
 
 // If you want to start measuring performance in your app, pass a function

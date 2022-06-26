@@ -1,23 +1,32 @@
 import React, { useEffect, useState } from "react";
-import data from "./style.json";
 
 import styles from "./Home.module.css";
 import WalletConnect from "walletconnect";
-import { Grid, Button, Container } from "@mui/material";
+import {
+  Grid,
+  Button,
+  Container,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+} from "@mui/material";
 import { connect } from "http2";
-import { fetchTransactionData } from "../api/covalantApi";
-
+import { fetchTransactionData, parseIntoMap } from "../api/covalantApi";
+import Graph from "./Graph";
+import ResponsiveAppBar from "./ResponsiveAppBar";
+import CytoscapeComponent from "react-cytoscapejs";
 
 //import Flow, { FlowProps, initialNodeProps } from './components/flow';
 //import { constructParentNode, wrapNodeProps } from './components/helper';
-
-const testAddress = "0xd8791b6abdb7c5d564018ebb93ad8a092b1d8abd";
+function radians(degrees: number) {
+  return (degrees * Math.PI) / 180;
+}
+const radius = .9;
+const testAddress = "0x62893F262390A4a531D5335b062fb42Bfb63304A";
 const layout = { name: "random" };
-const elements = [
-  { data: { id: "one", label: "Node 1" }, position: { x: 0, y: 0 } },
-  { data: { id: "two", label: "Node 2" }, position: { x: 100, y: 0 } },
-  { data: { source: "one", target: "two", label: "Edge from Node1 to Node2" } },
-];
+const wc = new WalletConnect();
+
 function truncate(str: String) {
   return str.substring(0, 6) + "..." + str.substring(36, 42);
 }
@@ -26,88 +35,149 @@ const Home = (props: any) => {
   const [isConnected, setConnection] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userAddress, setUserAddress] = useState("");
+  const [graphElements, setGraphElements] = useState([{}]);
 
   const connectOnClick = () => {
     //  Create WalletConnect SDK instance
-    const wc = new WalletConnect();
-    fetchTransactionData(testAddress)
-      .then((data) => {})
-      .catch((err) => {});
     //  Connect session (triggers QR Code modal)
     wc.connect()
       .then((data) => {
         console.log(data);
         const userAddress = data.accounts[0];
-        setConnection(true);
+
         setUserAddress(userAddress);
-        fetchTransactionData(userAddress);
+      fetchTransactionData(userAddress).then((data) => {
+        let transactionMap = parseIntoMap(data, userAddress);
+
+        let len = transactionMap.size;
+        let i = 0;
+        let interval = 365 / len;
+        let newElements: Array<any> = [
+          {
+            data: {
+              id: userAddress,
+              label: truncate(userAddress),
+              grabbable: true,
+              classes: 'eh-handle',
+              name: "YOU",
+              score: 1,
+
+                
+            },
+            position: {
+              x: 0,
+              y: 0,
+            },
+            style: {
+              backgroundColor: "#00000",
+            },
+          },
+          
+
+        ];
+        
+        transactionMap.forEach((val, key) => {
+          let pointAngleInRadians = radians(i);
+          console.log(pointAngleInRadians);
+          var x = Math.cos(pointAngleInRadians) * radius;
+          var y = Math.sin(pointAngleInRadians) * radius;
+          if (i % 2 == 0) {
+            x *= 1.5;
+            y *= 1.5;
+          }
+
+          let newNode = {
+            data: {
+              classes: 'eh-handle',
+              id: key,
+              label: '',
+              grabbable: true,
+              name: truncate(key),
+              isContract: val.isContract,
+              score: val.isContract ? val.numberOfTransactions/100: val.numberOfTransactions/1000,
+            },
+            position: {
+              x,
+              y,
+            },
+            style: {
+              backgroundColor: val.isContract ? "#0000FF": "#B8CEFF",
+            },
+          };
+
+
+          let newEdge = {
+            data: {
+              source: userAddress,
+              target: key,
+              weight: val.numberOfTransactions/1000,
+              networkGroupId: 18,
+            },
+            position: {},
+          };
+
+          i += interval;
+          newElements.push(newNode, newEdge);
+          setGraphElements(CytoscapeComponent.normalizeElements(newElements));
+        });
+      
+        setConnection(true);
+      
+        });
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => {});
   };
   const disconnectOnClick = () => {
-    const wc = new WalletConnect();
     //  Create WalletConnect SDK instance
     wc.connect()
       .then((data) => {
+      setConnection(false);
+
         data.killSession();
       })
       .catch((err) => {
         console.log(err);
       });
     setConnection(false);
+
     setUserAddress("");
   };
   return (
-    <div >
+    <div>
       {/* <Head>
         <title>Create Next App</title>
         <meta name="description" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
       </Head> */}
-      <Container>
-        <Grid container spacing={2}>
-          <Grid item xs={3}>
+      <ResponsiveAppBar></ResponsiveAppBar>
+      {!isConnected && (
+          <Button variant="contained" onClick={connectOnClick}>
             {" "}
-          </Grid>
-          <Grid item xs={8}>
-            <Container style={{}}></Container>
-          </Grid>
-
-          <Grid item xs={3}>
-            {" "}
-          </Grid>
-
-          <Grid item xs={11}></Grid>
-          <Grid item xs={1}>
-            {!isConnected && (
-              <Button variant="contained" onClick={connectOnClick}>
-                {" "}
-                Connect{" "}
-              </Button>
-            )}
-            {isConnected && (
-              <Button variant="contained" onClick={disconnectOnClick}>
-                {" "}
-                Disconnect {truncate(userAddress)}{" "}
-              </Button>
-            )}
-          </Grid>
-
-          {!isConnected && (
-            <Container>
-              {" "}
-              please connect wallet to generate affiliation network{" "}
-            </Container>
-          )}
-        </Grid>
-      </Container>
-        {isConnected && (
-          <React.StrictMode>
-          
-          </React.StrictMode>
+            Connect{" "}
+          </Button>
         )}
+        {isConnected && (
+          <Button variant="contained" onClick={disconnectOnClick}>
+            {" "}
+            Disconnect {truncate(userAddress)}{" "}
+          </Button>
+        )}
+        {!isConnected && (
+          <Container>
+            {" "}
+            please connect wallet to generate affiliation network{" "}
+          </Container>
+        )}
+        {isConnected && graphElements.length  == 0 &&(
+          <Container>
+          {" "}
+          generating affiliation network{" "}
+        </Container>
+        )}
+
+      {isConnected && graphElements.length > 1 && (
+        <Graph elements={graphElements} userAddress={userAddress}></Graph>
+      )}
     </div>
   );
 };
