@@ -96,10 +96,20 @@ export const fetchTransactionData = async (address: string) => {
   return response.data.data as TransactionResponseInterface;
   //console.log(parsedResponse.items);
 };
-export interface AddressMetadata {
+export interface addressMetadata {
   numberOfTransactions: number;
   isContract: boolean;
 }
+
+export interface pairTransactionData {
+  block_signed_at: string;
+  from_address: string;
+  to_address: string;
+  fees_paid: number;
+  gas_price: number;
+}
+
+export interface TransactionArray extends Array<pairTransactionData> {}
 
 /* Transcation map */
 /* functionality: creates map of all transactions addressees and number of times transacted with */
@@ -109,7 +119,7 @@ export const parseIntoMap = (
 ) => {
   console.log("parseintoMap called");
 
-  const transactionMap = new Map<string, AddressMetadata>();
+  const transactionCountMap = new Map<string, addressMetadata>();
   //transaction map
   jsonResponse.items.forEach((o) => {
     //iterate through each transaction
@@ -118,24 +128,25 @@ export const parseIntoMap = (
       const address = o.to_address; //get to_address of trxn
       const logEvents = o.log_events; //gets array of log events
       /* get transaction count */
-      if (transactionMap.has(address)) {
-        transactionMap.set(address, {
+      if (transactionCountMap.has(address)) {
+        transactionCountMap.set(address, {
           numberOfTransactions:
-            (transactionMap.get(address) as AddressMetadata)
+            (transactionCountMap.get(address) as addressMetadata)
               .numberOfTransactions + 1,
           isContract: false,
         });
       } else {
-        transactionMap.set(address, {
+        transactionCountMap.set(address, {
           numberOfTransactions: 1,
           isContract: false,
         });
       }
       //set isContract to be true if there is any info in log_events
       if (logEvents.length > 0) {
-        transactionMap.set(address, {
-          numberOfTransactions: (transactionMap.get(address) as AddressMetadata)
-            .numberOfTransactions,
+        transactionCountMap.set(address, {
+          numberOfTransactions: (
+            transactionCountMap.get(address) as addressMetadata
+          ).numberOfTransactions,
           isContract: true,
         });
       }
@@ -144,22 +155,33 @@ export const parseIntoMap = (
       const address = o.from_address; //get to_address of trxn
       const logEvents = o.log_events; //gets array of log events
       /* get transaction count */
-      if (transactionMap.has(address)) {
-        transactionMap.set(address, {
+      if (transactionCountMap.has(address)) {
+        transactionCountMap.set(address, {
           numberOfTransactions:
-            (transactionMap.get(address) as AddressMetadata)
+            (transactionCountMap.get(address) as addressMetadata)
               .numberOfTransactions + 1,
           isContract: false,
         });
       } else {
-        transactionMap.set(address, {
+        transactionCountMap.set(address, {
           numberOfTransactions: 1,
           isContract: false,
         });
       }
     }
   });
-  console.log(transactionMap); //output to console
+  console.log(transactionCountMap); //output to console
 
-  return transactionMap;
+  return transactionCountMap;
 };
+
+// export const parseTransactionList = (
+//   jsonResponse: TransactionResponseInterface,
+//   userAddress: string,
+//   pairAddress: string
+// ) => {
+//     const transactionListMap = new Map<string, TransactionArray>();
+//     jsonResponse.items.forEach((o) => {
+//         if(o.from_address==)
+//     }
+// };
